@@ -507,19 +507,30 @@
     const addRow = (e) => {
       const row = document.createElement("div")
       row.className = "row"
+      const tags = []
+      if (e.country) tags.push(`${e.country}${e.city ? " · " + e.city : ""}`)
+      if (e.ref) tags.push(`ref: ${new URL(e.ref).host}`)
+      if (e.browser && e.device) tags.push(`${e.browser} · ${e.device}`)
+      if (e.path) tags.push(`path: ${e.path}`)
+      if (e.httpProtocol) tags.push(`tls: ${e.httpProtocol}`)
+      if (e.accept) tags.push(`accept: ${e.accept}`)
+      if (e.secFetchSite) tags.push(`sec-fetch-site: ${e.secFetchSite}`)
+      if (e.qs?.utm_source || e.qs?.utm_campaign) tags.push(`utm: ${e.qs.utm_source || e.qs.utm_campaign}`)
+
       row.innerHTML = `
         <div class="time">${esc(time(e.tsUtc))}</div>
-        <div class="badge"><span class="dot ${e.label === "bot" ? "bad" : ""}"></span> ${e.label}</div>
+        <div class="badge"><span class="dot ${e.label === "bot" ? "bad" : ""}"></span> ${esc(e.label)}</div>
         <div class="ua">
           <div class="topline">
             <div class="agent">${esc(e.ua)}</div>
-            <span class="tag">${esc(e.ref ? "ref: " + new URL(e.ref).host : "ref: (none)")}</span>
+            ${tags.slice(0,2).map(t => `<span class="tag">${esc(t)}</span>`).join("")}
           </div>
           <div class="meta">
-            <span class="tag">path: ${esc(e.path || "/")}</span>
+            ${tags.slice(2).map(t => `<span class="tag">${esc(t)}</span>`).join("")}
           </div>
         </div>
       `
+
       list.prepend(row)
       while (list.children.length > maxRows) list.removeChild(list.lastChild)
     }
@@ -527,7 +538,12 @@
     fetch("/hit", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ path: location.pathname })
+      body: JSON.stringify({
+        url: location.href,
+        path: location.pathname,
+        qs: Object.fromEntries(new URLSearchParams(location.search)),
+        ref: document.referrer || null
+      })
     })
 
     const es = new EventSource("/stream")

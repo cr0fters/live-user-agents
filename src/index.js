@@ -57,13 +57,44 @@ export class StreamHub {
       const isBot = /bot|crawler|spider|curl|wget|python|requests|headless/i.test(ua)
       const label = isBot ? "bot" : "human"
 
+      const cf = request.cf || {}
+      const accept = request.headers.get("accept") || null
+      const secFetchSite = request.headers.get("sec-fetch-site") || null
+      const httpProtocol = cf.httpProtocol || null
+      const country = cf.country || null
+      const city = cf.city || null
+      const colo = cf.colo || null
+      
+      const uaLower = ua.toLowerCase()
+      const device =
+        /iphone|ipad|android/.test(uaLower) ? "mobile" :
+        /mac|win|linux/.test(uaLower) ? "desktop" :
+        "unknown"
+      
+      const browser =
+        ua.includes("Firefox/") ? "firefox" :
+        ua.includes("Edg/") ? "edge" :
+        ua.includes("Chrome/") && !ua.includes("Edg/") ? "chrome" :
+        ua.includes("Safari/") && !ua.includes("Chrome/") ? "safari" :
+        "unknown"
+      
       const evt = {
         tsUtc: new Date().toISOString(),
         ua,
-        ref: ref || null,
+        ref: ref || body.ref || null,
         path,
-        label
+        label,
+        country,
+        city,
+        colo,
+        httpProtocol,
+        accept,
+        secFetchSite,
+        browser,
+        device,
+        qs: body.qs || null
       }
+      
 
       this.buffer.push(evt)
       if (this.buffer.length > this.maxBuffer) this.buffer.splice(0, this.buffer.length - this.maxBuffer)
