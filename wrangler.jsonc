@@ -1,0 +1,12 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "live-user-agents",
+  "main": "src/index.js",
+  "compatibility_date": "2025-09-27",
+  "assets": { "directory": "./public", "binding": "ASSETS" },
+  "durable_objects": {
+    "bindings": [{ "class_name": "StreamHub", "name": "STREAM" }]
+  },
+  "migrations": [{ "new_sqlite_classes": ["StreamHub"], "tag": "v1" }],
+  "observability": { "enabled": true }
+}
